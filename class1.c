@@ -8,11 +8,11 @@
 #define DEBUG 1
 #define FULL_DEBAG 2
 
-int dbg_lvl  = DEBUG;
+int dbg_level  = DEBUG;
 
-void trace (int dbg_lvl, const char * format, ...); //принт с аргументом, только дебаг
+void trace (int dbg_lvl, const char * format, ...); //ГЇГ°ГЁГ­ГІ Г± Г Г°ГЈГіГ¬ГҐГ­ГІГ®Г¬, ГІГ®Г«ГјГЄГ® Г¤ГҐГЎГ ГЈ
 {
-    if (dbg_lvl ...)
+    if (dbg_lvl != dbg_level)
         return;
     va_list ap;
     va_start(format, ap);
