@@ -10,7 +10,7 @@
 #define FULL_DEBAG 2
 
 int dbg_level  = DEBUG;
-int no_bin;
+int no_bit;
 
 //void trace (int dbg_lvl, const char * format, ...); //принт с аргументом, только дебаг
 //{
@@ -30,7 +30,12 @@ typedef word adr;
 #define HAS_XX 1
 #define HAS_SS (1<<1)
 #define HAS_DD (1<<2)
+#define HAS_NN (1<<3)
+#define HAS_MR (1<<4)
 
+
+int N, Z, V, C;
+int nn, xx;
 byte mem[56*1024];
 word reg[8];
 #define pc reg[7]
@@ -79,25 +84,6 @@ word w_read(adr a)
 	return res;
 }
 
-void test_m()
-{
-	byte b0, b1;
-	word w;
-
-	b0 = 0xA;
-	b1 = 0xB;
-	b_write(0, b0);
-	b_write(1, b1);
-	w = w_read(0);
-	printf("%04x = %02hhx%02hhx\n", w, b1, b0);
-
-	w = 0x0B0A;
-	w_write(2, w);
-	b0 = b_read(2);
-	b1 = b_read(3);
-	printf("%04x = %02hhx%02hhx\n", w, b1, b0);
-}
-
 void load_file()
 {
 	FILE * f = NULL;
@@ -133,17 +119,9 @@ void mem_dump(adr s, word n)
 	}
 }
 
-int is_no_bin (word x)
-{
-    no_bin = (x & 100000 ? 0 : 1);
-    return no_bin;
-}
-
 word bw_read (adr a, int nb)
 {
-    word x;
-    x = (nb ? w_read(a) : b_read(a));
-    return x;
+    return (nb ? w_read(a) : b_read(a));
 }
 
 struct SSDD get_m (word w) {
@@ -151,8 +129,8 @@ struct SSDD get_m (word w) {
     int n = w & 7;
     int mode = (w >> 3) & 7;
     int b, b0;
-    b0 = is_no_bin(w);
-    b = (is_no_bin(w) ? 2 : 1);
+    b0 = no_bit;
+    b = (no_bit ? 2 : 1);
     switch (mode) {
     case 0:
         res.a = n;
@@ -208,6 +186,13 @@ struct SSDD get_m (word w) {
     return res;
 }
 
+void NZVC (word w)
+{
+    N = (no_bit ? w >> 15 : w >> 7) & 1;
+    Z = (w == 0);
+    C = (no_bit ? w >> 16 : w >> 8) & 1;
+}
+
 void do_mov()
 {
     w_write(dd.a, ss.val);
@@ -230,6 +215,11 @@ void do_halt ()
     exit(0);
 }
 
+void do_sob ()
+{
+
+}
+
 void do_unknown()
 {
     printf("Ooops");
@@ -241,12 +231,14 @@ struct comm {
     const char * name;
     void (*do_func)();
     byte param;
+    int is_no_bit;
 } command [] = {
-    {0010000, 0170000, "mov", do_mov, HAS_SS | HAS_DD},
-    {0060000, 0170000, "add", do_add, HAS_SS | HAS_DD},
-    {0000000, 0177777, "halt", do_halt, NO_PARAM},
-    {0110000, 0170000, "movb", do_movb, HAS_SS | HAS_DD},
-    {0, 0, "unknown", do_unknown, NO_PARAM},
+    {0010000, 0170000, "mov", do_mov, HAS_SS | HAS_DD, 1},
+    {0060000, 0170000, "add", do_add, HAS_SS | HAS_DD, 1},
+    {0000000, 0177777, "halt", do_halt, NO_PARAM, 1},
+    {0110000, 0170000, "movb", do_movb, HAS_SS | HAS_DD, 0},
+    {0077000, 0177000, "sob", do_sob, HAS_NN | HAS_MR, 1},
+    {0, 0, "unknown", do_unknown, NO_PARAM, 1},
 };
 
 void run()
@@ -259,12 +251,13 @@ void run()
         fprintf(stdout, "%06o : %06o", pc, w);
         pc += 2;
         struct comm cmd;
-        for (i = 0; i < 4; i++)
+        for (i = 0; ; i++)
         {
             cmd = command[i];
             if ((w & cmd.mask) == cmd.opcode)
             {
                 printf(" %s ", cmd.name);
+                no_bit = cmd.is_no_bit;
                 if (cmd.param & HAS_SS)
                 {
                     ss = get_m(w>>6);
@@ -274,6 +267,14 @@ void run()
                 {
                     dd = get_m(w);
                  //   printf ("dd.a =%d, dd.val = %d");
+                }
+                if (cmd.param & HAS_NN)
+                {
+                    nn = w&63;
+                }
+                if (cmd.param & HAS_MR)
+                {
+                    ;
                 }
                 cmd.do_func();
                 break;
