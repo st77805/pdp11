@@ -10,6 +10,7 @@
 #define FULL_DEBAG 2
 
 int dbg_level  = DEBUG;
+int no_bin;
 
 //void trace (int dbg_lvl, const char * format, ...); //принт с аргументом, только дебаг
 //{
@@ -48,7 +49,10 @@ void reg_print ()
 
 void b_write(adr a, byte x)
 {
-	mem[a] = x;
+    if (a < 15)
+        reg[a] = x & 0xff;
+    else
+        mem[a] = x;
 }
 
 byte b_read(adr a)
@@ -129,10 +133,26 @@ void mem_dump(adr s, word n)
 	}
 }
 
+int is_no_bin (word x)
+{
+    no_bin = (x & 100000 ? 0 : 1);
+    return no_bin;
+}
+
+word bw_read (adr a, int nb)
+{
+    word x;
+    x = (nb ? w_read(a) : b_read(a));
+    return x;
+}
+
 struct SSDD get_m (word w) {
     struct SSDD res;
     int n = w & 7;
     int mode = (w >> 3) & 7;
+    int b, b0;
+    b0 = is_no_bin(w);
+    b = (is_no_bin(w) ? 2 : 1);
     switch (mode) {
     case 0:
         res.a = n;
@@ -141,13 +161,13 @@ struct SSDD get_m (word w) {
         break;
     case 1:
         res.a = reg[n];
-        res.val = w_read(res.a);
+        res.val = bw_read(res.a, b0);
         printf("R%d ", n);
         break;
     case 2:
         res.a = reg[n];
-        res.val = w_read(res.a);
-        reg[n] += 2;
+        res.val = bw_read(res.a, b0);
+        reg[n] += b;
         if (n == 7)
             printf("#%o ", res.val);
         else
@@ -155,18 +175,18 @@ struct SSDD get_m (word w) {
         break;
     case 3:
         res.a = reg[n];
-        reg[n] += 2;
-        res.a = w_read(res.a);
-        res.val = w_read(res.a);
+        reg[n] += b;
+        res.a = bw_read(res.a, b0);
+        res.val = bw_read(res.a, b0);
         if (n == 7)
             printf("#%o ", res.val);
         else
             printf("(R%d)+ ", n);
         break;
     case 4:
-        reg[n] -= 2;
+        reg[n] -= b;
         res.a = reg[n];
-        res.val = w_read((res.a));
+        res.val = bw_read(res.a, b0);
         if (n == 7)
             printf("#%o ", res.val);
         else
@@ -174,9 +194,9 @@ struct SSDD get_m (word w) {
         break;
     case 5:
         res.a = reg[n];
-        reg[n] -= 2;
-        res.a = w_read(res.a);
-        res.val = w_read(res.a);
+        reg[n] -= b;
+        res.a = bw_read(res.a, b0);
+        res.val = bw_read(res.a, b0);
         if (n == 7)
             printf("#%o ", res.val);
         else
@@ -191,6 +211,11 @@ struct SSDD get_m (word w) {
 void do_mov()
 {
     w_write(dd.a, ss.val);
+}
+
+void do_movb()
+{
+    b_write(dd.a, ss.val);
 }
 
 void do_add()
@@ -220,6 +245,7 @@ struct comm {
     {0010000, 0170000, "mov", do_mov, HAS_SS | HAS_DD},
     {0060000, 0170000, "add", do_add, HAS_SS | HAS_DD},
     {0000000, 0177777, "halt", do_halt, NO_PARAM},
+    {0110000, 0170000, "movb", do_movb, HAS_SS | HAS_DD},
     {0, 0, "unknown", do_unknown, NO_PARAM},
 };
 
