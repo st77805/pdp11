@@ -32,10 +32,11 @@ typedef word adr;
 #define HAS_DD (1<<2)
 #define HAS_NN (1<<3)
 #define HAS_MR (1<<4)
+#define HAS_LR (1<<5)
 
 
 int N, Z, V, C;
-int nn, xx;
+int nn, xx, mr, lr;
 byte mem[56*1024];
 word reg[8];
 #define pc reg[7]
@@ -196,16 +197,19 @@ void NZVC (word w)
 void do_mov()
 {
     w_write(dd.a, ss.val);
+    NZVC(ss.val);
 }
 
 void do_movb()
 {
     b_write(dd.a, ss.val);
+    NZVC(ss.val);
 }
 
 void do_add()
 {
     w_write(dd.a, ss.val + dd.val);
+    NZVC(ss.val+dd.val);
 }
 
 void do_halt ()
@@ -217,7 +221,17 @@ void do_halt ()
 
 void do_sob ()
 {
+    reg[mr]--;
+    if (reg[mr] != 0)
+        pc = pc - 2*nn;
+    printf("R%d\n", mr);
+    NZVC(pc);
+}
 
+void do_clr ()
+{
+    w_write(dd.a, 0);
+    NZVC(0);
 }
 
 void do_unknown()
@@ -238,6 +252,7 @@ struct comm {
     {0000000, 0177777, "halt", do_halt, NO_PARAM, 1},
     {0110000, 0170000, "movb", do_movb, HAS_SS | HAS_DD, 0},
     {0077000, 0177000, "sob", do_sob, HAS_NN | HAS_MR, 1},
+    {0005000, 0177700, "clr", do_clr, HAS_DD, 1},
     {0, 0, "unknown", do_unknown, NO_PARAM, 1},
 };
 
@@ -274,7 +289,7 @@ void run()
                 }
                 if (cmd.param & HAS_MR)
                 {
-                    ;
+                    mr = (w>>6)&7;
                 }
                 cmd.do_func();
                 break;
