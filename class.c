@@ -49,7 +49,7 @@ void load_file()
 		int i;
 		for (i = 0; i < n; i++)
 		{
-			fscanf(f, "%02hhx", &b);
+			fscanf(f, "%x", &b);
 			b_write(i + a, (byte)b);
 		}
 	}
@@ -194,6 +194,3 @@ int main()
     run();
     return 0;
 }
-
-
-

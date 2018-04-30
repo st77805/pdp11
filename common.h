@@ -1,3 +1,5 @@
+#ifndef _COMMON_H
+#define _COMMON_H
 
 #define RELELASE 0
 #define DEBUG 1
@@ -58,4 +60,4 @@ void do_unknown();
 void reg_print ();
 void NZVC (word w);
 
-//#endif // _COMMON_H
+#endif // _COMMON_H
