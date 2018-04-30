@@ -2,14 +2,13 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <WinError.h>
-#include <string.h>
 #include <stdarg.h>
 
 #define RELELASE 0
 #define DEBUG 1
 #define FULL_DEBAG 2
 
-int dbg_level  = DEBUG;
+int dbg_level = DEBUG;
 int no_bit;
 
 //void trace (int dbg_lvl, const char * format, ...); //принт с аргументом, только дебаг
