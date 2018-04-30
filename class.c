@@ -37,7 +37,7 @@ void load_file()
 	FILE * f = NULL;
 	adr a;
 	word n;
-	f = fopen("sum.txt", "r");
+	f = fopen("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\01_sum\\sum.o", "r");
 	if (f == NULL) {
 		perror("sum.txt");
 		exit(7);
@@ -187,10 +187,11 @@ void run()
         printf("\n");
     }
 }
-
+/*
 int main()
 {
     load_file();
     run();
     return 0;
 }
+*/
