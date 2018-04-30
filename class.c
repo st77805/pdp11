@@ -3,10 +3,7 @@
 #include <assert.h>
 #include <WinError.h>
 #include <stdarg.h>
-
-#define RELELASE 0
-#define DEBUG 1
-#define FULL_DEBAG 2
+#include "common.h"
 
 int dbg_level = DEBUG;
 int no_bit;
@@ -21,67 +18,18 @@ int no_bit;
     //va_end(ap);
 //}
 
-typedef unsigned char byte;
-typedef int word;
-typedef word adr;
-
-#define NO_PARAM 0
-#define HAS_XX 1
-#define HAS_SS (1<<1)
-#define HAS_DD (1<<2)
-#define HAS_NN (1<<3)
-#define HAS_MR (1<<4)
-#define HAS_LR (1<<5)
-
-
 int N, Z, V, C;
 int nn, xx, mr, lr;
 byte mem[56*1024];
 word reg[8];
-#define pc reg[7]
 
-struct SSDD {
-    word val;
-    adr a;
-} ss, dd;
+struct SSDD ss, dd;
 
 void reg_print ()
 {
     int i;
     for (i = 0; i < 8; i++)
         printf("R%d : %06o\n", i, reg[i]);
-}
-
-void b_write(adr a, byte x)
-{
-    if (a < 15)
-        reg[a] = x & 0xff;
-    else
-        mem[a] = x;
-}
-
-byte b_read(adr a)
-{
-	return mem[a];
-}
-
-void w_write(adr a, word x)
-{
-    if (a < 15)
-        reg[a] = x;
-    else
-    {
-        mem[a] = (byte)(x & 0xFF);
-        mem[a+1] = (byte)((x >> 8) & 0xFF);
-    }
-}
-
-word w_read(adr a)
-{
-	word res;
-	assert(a % 2 == 0);
-	res = (word)(mem[a]) | (word)(mem[a+1] << 8);
-	return res;
 }
 
 void load_file()
@@ -117,11 +65,6 @@ void mem_dump(adr s, word n)
 		w = w_read(i);
 		printf("%06o : %06o\n", i, w);
 	}
-}
-
-word bw_read (adr a, int nb)
-{
-    return (nb ? w_read(a) : b_read(a));
 }
 
 struct SSDD get_m (word w) {
@@ -192,60 +135,7 @@ void NZVC (word w)
     Z = (w == 0);
     C = (no_bit ? w >> 16 : w >> 8) & 1;
 }
-
-void do_mov()
-{
-    w_write(dd.a, ss.val);
-    NZVC(ss.val);
-}
-
-void do_movb()
-{
-    b_write(dd.a, ss.val);
-    NZVC(ss.val);
-}
-
-void do_add()
-{
-    w_write(dd.a, ss.val + dd.val);
-    NZVC(ss.val+dd.val);
-}
-
-void do_halt ()
-{
-    printf("THE END!!!\n");
-    reg_print();
-    exit(0);
-}
-
-void do_sob ()
-{
-    reg[mr]--;
-    if (reg[mr] != 0)
-        pc = pc - 2*nn;
-    printf("R%d\n", mr);
-    NZVC(pc);
-}
-
-void do_clr ()
-{
-    w_write(dd.a, 0);
-    NZVC(0);
-}
-
-void do_unknown()
-{
-    printf("Ooops");
-}
-
-struct comm {
-    word opcode;
-    word mask;
-    const char * name;
-    void (*do_func)();
-    byte param;
-    int is_no_bit;
-} command [] = {
+struct comm command [] = {
     {0010000, 0170000, "mov", do_mov, HAS_SS | HAS_DD, 1},
     {0060000, 0170000, "add", do_add, HAS_SS | HAS_DD, 1},
     {0000000, 0177777, "halt", do_halt, NO_PARAM, 1},
@@ -297,7 +187,6 @@ void run()
         printf("\n");
     }
 }
-
 
 int main()
 {
