@@ -8,15 +8,15 @@
 int dbg_level = DEBUG;
 int no_bit;
 
-//void trace (int dbg_lvl, const char * format, ...); //принт с аргументом, только дебаг
-//{
- //   if (dbg_lvl != dbg_level)
-   //     return;
-    //va_list ap;
-//    va_start(format, ap);
-  //  vprintf(format, ap);
-    //va_end(ap);
-//}
+void trace (int dbg_lvl, const char * format, ...) //принт с аргументом, только дебаг
+{
+    if (dbg_lvl != dbg_level)
+        return;
+    va_list ap;
+    va_start(ap, format);
+    vprintf(format, ap);
+    va_end(ap);
+}
 
 int N, Z, V, C;
 int nn, xx, mr, lr;
@@ -28,8 +28,12 @@ struct SSDD ss, dd;
 void reg_print ()
 {
     int i;
-    for (i = 0; i < 8; i++)
-        printf("R%d : %06o\n", i, reg[i]);
+    for (i = 0; i < 8; i += 2)
+        printf("R%d : %06o  ", i, reg[i]);
+    printf("\n");
+    for (i = 1; i < 8; i += 2)
+        printf("R%d : %06o  ", i, reg[i]);
+
 }
 
 void load_file()
@@ -37,9 +41,9 @@ void load_file()
 	FILE * f = NULL;
 	adr a;
 	word n;
-	f = fopen("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\01_sum\\sum.o", "r");
+	f = fopen("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\03_sob_byte\\sumvar_byte.txt.o", "r");
 	if (f == NULL) {
-		perror("sum.txt");
+		perror("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\03_sob_byte\\sumvar_byte.txt.o");
 		exit(7);
 	}
 
@@ -63,7 +67,7 @@ void mem_dump(adr s, word n)
 	for (i = s; i < s + n; i = i + 2)
 	{
 		w = w_read(i);
-		printf("%06o : %06o\n", i, w);
+		trace(dbg_level, "%06o : %06o\n", i, w);
 	}
 }
 
@@ -73,55 +77,59 @@ struct SSDD get_m (word w) {
     int mode = (w >> 3) & 7;
     int b, b0;
     b0 = no_bit;
-    b = (no_bit ? 2 : 1);
+    b = (((no_bit)||(n==6)||(n==7)) ? 2 : 1);
     switch (mode) {
     case 0:
         res.a = n;
         res.val = reg[n];
-        printf("R%d ", n);
+        printf("0R%d ", n);
         break;
     case 1:
         res.a = reg[n];
-        res.val = bw_read(res.a, b0);
-        printf("R%d ", n);
+        res.val = bw_read(res.a, b0, n);
+        printf("1R%d ", n);
         break;
     case 2:
+        //printf("+n=%d, regn=%o+\n", n, reg[n]);
         res.a = reg[n];
-        res.val = bw_read(res.a, b0);
+        res.val = bw_read(res.a, b0, n); //why 0??
         reg[n] += b;
         if (n == 7)
-            printf("#%o ", res.val);
+            printf("2#%o ", res.val);
         else
-            printf("(R%d)+ ", n);
+        {
+            printf("(2R%d)+ ", n);
+            //printf("--2#%o-- ", res.val);
+        }
         break;
     case 3:
         res.a = reg[n];
         reg[n] += b;
-        res.a = bw_read(res.a, b0);
-        res.val = bw_read(res.a, b0);
+        res.a = bw_read(res.a, b0, n);
+        res.val = bw_read(res.a, b0, n);
         if (n == 7)
-            printf("#%o ", res.val);
+            printf("3@#%o ", res.val);
         else
-            printf("(R%d)+ ", n);
+            printf("(3R%d)+ ", n);
         break;
     case 4:
         reg[n] -= b;
         res.a = reg[n];
-        res.val = bw_read(res.a, b0);
+        res.val = bw_read(res.a, b0, n);
         if (n == 7)
-            printf("#%o ", res.val);
+            printf("4#%o ", res.val);
         else
-            printf("(R%d)+ ", n);
+            printf("(4R%d)- ", n);
         break;
     case 5:
         res.a = reg[n];
         reg[n] -= b;
-        res.a = bw_read(res.a, b0);
-        res.val = bw_read(res.a, b0);
+        res.a = bw_read(res.a, b0, n);
+        res.val = bw_read(res.a, b0, n);
         if (n == 7)
-            printf("#%o ", res.val);
+            printf("5@#%o ", res.val);
         else
-            printf("(R%d)+ ", n);
+            printf("(R%d)- ", n);
         break;
     default:
         printf("This mode hasn't been open yet");
@@ -151,7 +159,7 @@ void run()
     int i;
     while(1)
     {
-        word w = w_read(pc);
+        word w = w_read(pc) & 0xFFFF;
         fprintf(stdout, "%06o : %06o", pc, w);
         pc += 2;
         struct comm cmd;
@@ -165,12 +173,12 @@ void run()
                 if (cmd.param & HAS_SS)
                 {
                     ss = get_m(w>>6);
-                 //   printf ("ss.a =%d, ss.val = %d");
+                    //printf ("ss.a =%o, ss.val = %o ");
                 }
                 if (cmd.param & HAS_DD)
                 {
                     dd = get_m(w);
-                 //   printf ("dd.a =%d, dd.val = %d");
+                    //printf ("dd.a =%o, dd.val = %o ");
                 }
                 if (cmd.param & HAS_NN)
                 {
@@ -185,6 +193,9 @@ void run()
             }
         }
         printf("\n");
+        /*printf("***\n");
+        reg_print();
+        printf("***\n");*/
     }
 }
 /*

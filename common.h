@@ -47,7 +47,7 @@ void b_write(adr a, byte x);
 void w_write(adr a, word x);
 byte b_read(adr a);
 word w_read(adr a);
-word bw_read (adr a, int nb);
+word bw_read (adr a, int nb, int n);
 
 void do_mov();
 void do_movb();

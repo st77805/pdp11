@@ -6,18 +6,16 @@
 void do_mov()
 {
     w_write(dd.a, ss.val);
-    NZVC(ss.val);
 }
 
 void do_movb()
 {
     b_write(dd.a, ss.val);
-    NZVC(ss.val);
 }
 
 void do_add()
 {
-    w_write(dd.a, ss.val + dd.val);
+    w_write(dd.a, (ss.val + dd.val)&0xFF);
     NZVC(ss.val+dd.val);
 }
 
@@ -40,7 +38,6 @@ void do_sob ()
 void do_clr ()
 {
     w_write(dd.a, 0);
-    NZVC(0);
 }
 
 void do_unknown()

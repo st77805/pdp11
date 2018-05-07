@@ -6,8 +6,8 @@
 
 void b_write(adr a, byte x)
 {
-    if (a < 15)
-        reg[a] = x & 0xff;
+    if (a < 8)
+        reg[a] = ((x>>7) ? (x | 0xFF00) : x);
     else
         mem[a] = x;
 }
@@ -36,7 +36,8 @@ word w_read(adr a)
 	return res;
 }
 
-word bw_read (adr a, int nb)
+word bw_read (adr a, int nb, int n)
 {
-    return (nb ? w_read(a) : b_read(a));
+    //printf("_b0=%d,wr=%d,br=%d_\n", nb, w_read(a), b_read(a));
+    return (((nb)|(n==6)|(n==7)) ? w_read(a) : b_read(a));
 }
