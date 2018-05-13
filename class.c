@@ -41,9 +41,9 @@ void load_file()
 	FILE * f = NULL;
 	adr a;
 	word n;
-	f = fopen("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\03_sob_byte\\sumvar_byte.txt.o", "r");
+	f = fopen("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\06_mode4\\mode4.txt.o", "r");
 	if (f == NULL) {
-		perror("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\03_sob_byte\\sumvar_byte.txt.o");
+		perror("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\06_mode4\\mode4.txt.o");
 		exit(7);
 	}
 
@@ -92,7 +92,7 @@ struct SSDD get_m (word w) {
     case 2:
         //printf("+n=%d, regn=%o+\n", n, reg[n]);
         res.a = reg[n];
-        res.val = bw_read(res.a, b0, n); //why 0??
+        res.val = bw_read(res.a, b0, n);
         reg[n] += b;
         if (n == 7)
             printf("2#%o ", res.val);
@@ -116,9 +116,9 @@ struct SSDD get_m (word w) {
         reg[n] -= b;
         res.a = reg[n];
         res.val = bw_read(res.a, b0, n);
-        if (n == 7)
-            printf("4#%o ", res.val);
-        else
+       // if (n == 7)
+        //    printf("4#%o ", res.val);
+        //else
             printf("(4R%d)- ", n);
         break;
     case 5:
@@ -139,9 +139,9 @@ struct SSDD get_m (word w) {
 
 void NZVC (word w)
 {
-    N = (no_bit ? w >> 15 : w >> 7) & 1;
+    N = (no_bit ? (w >> 15) : (w >> 7)) & 1;
     Z = (w == 0);
-    C = (no_bit ? w >> 16 : w >> 8) & 1;
+    C = (no_bit ? (w >> 16) : (w >> 8)) & 1;
 }
 struct comm command [] = {
     {0010000, 0170000, "mov", do_mov, HAS_SS | HAS_DD, 1},
@@ -150,6 +150,8 @@ struct comm command [] = {
     {0110000, 0170000, "movb", do_movb, HAS_SS | HAS_DD, 0},
     {0077000, 0177000, "sob", do_sob, HAS_NN | HAS_MR, 1},
     {0005000, 0177700, "clr", do_clr, HAS_DD, 1},
+    {0000400, 0177400, "br", do_br, HAS_XX, 1},
+    {0001400, 0177400, "beq", do_beq, HAS_XX, 1},
     {0, 0, "unknown", do_unknown, NO_PARAM, 1},
 };
 
@@ -184,6 +186,10 @@ void run()
                 {
                     nn = w&63;
                 }
+                if (cmd.param & HAS_XX)
+                {
+                    xx = (char)(w&255);
+                }
                 if (cmd.param & HAS_MR)
                 {
                     mr = (w>>6)&7;
@@ -193,9 +199,9 @@ void run()
             }
         }
         printf("\n");
-        /*printf("***\n");
+      /*  printf("***\n");
         reg_print();
-        printf("***\n");*/
+        printf("\n***\n");*/
     }
 }
 /*

@@ -6,11 +6,13 @@
 void do_mov()
 {
     w_write(dd.a, ss.val);
+    NZVC(ss.val+dd.val);
 }
 
 void do_movb()
 {
     b_write(dd.a, ss.val);
+    NZVC(ss.val+dd.val);
 }
 
 void do_add()
@@ -30,14 +32,27 @@ void do_sob ()
 {
     reg[mr]--;
     if (reg[mr] != 0)
-        pc = pc - 2*nn;
+        pc -= 2*nn;
     printf("R%d\n", mr);
-    NZVC(pc);
 }
 
 void do_clr ()
 {
     w_write(dd.a, 0);
+    Z = 1;
+}
+
+void do_br ()
+{
+    pc += xx*2;
+    printf("%06o ", pc);
+}
+
+void do_beq ()
+{
+    if (Z == 1)
+        do_br();
+
 }
 
 void do_unknown()
