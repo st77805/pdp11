@@ -18,6 +18,10 @@ typedef word adr;
 #define HAS_LR (1<<5)
 
 #define pc reg[7]
+#define sp reg[6]
+#define ostat 0177564
+#define odata 0177566
+
 
 struct SSDD {
     word val;
@@ -56,6 +60,8 @@ void do_sob();
 void do_clr();
 void do_br();
 void do_beq();
+void do_bpl();
+void do_tstb();
 void do_halt();
 void do_unknown();
 

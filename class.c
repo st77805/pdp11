@@ -41,9 +41,9 @@ void load_file()
 	FILE * f = NULL;
 	adr a;
 	word n;
-	f = fopen("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\06_mode4\\mode4.txt.o", "r");
+	f = fopen("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\07_putchar\\char.pdp.o", "r");
 	if (f == NULL) {
-		perror("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\06_mode4\\mode4.txt.o");
+		perror("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\07_putchar\\char.pdp.o");
 		exit(7);
 	}
 
@@ -57,6 +57,7 @@ void load_file()
 			b_write(i + a, (byte)b);
 		}
 	}
+	fclose(f);
 }
 
 void mem_dump(adr s, word n)
@@ -82,12 +83,12 @@ struct SSDD get_m (word w) {
     case 0:
         res.a = n;
         res.val = reg[n];
-        printf("0R%d ", n);
+        printf("0-R%d ", n);
         break;
     case 1:
         res.a = reg[n];
         res.val = bw_read(res.a, b0, n);
-        printf("1R%d ", n);
+        printf("1-R%d ", n);
         break;
     case 2:
         //printf("+n=%d, regn=%o+\n", n, reg[n]);
@@ -95,10 +96,10 @@ struct SSDD get_m (word w) {
         res.val = bw_read(res.a, b0, n);
         reg[n] += b;
         if (n == 7)
-            printf("2#%o ", res.val);
+            printf("2-#%o ", res.val);
         else
         {
-            printf("(2R%d)+ ", n);
+            printf("(2-R%d)+ ", n);
             //printf("--2#%o-- ", res.val);
         }
         break;
@@ -108,18 +109,18 @@ struct SSDD get_m (word w) {
         res.a = bw_read(res.a, b0, n);
         res.val = bw_read(res.a, b0, n);
         if (n == 7)
-            printf("3@#%o ", res.val);
+            printf("3-@#%o ", res.a);
         else
-            printf("(3R%d)+ ", n);
+            printf("(3-R%d)+ ", n);
         break;
     case 4:
         reg[n] -= b;
         res.a = reg[n];
         res.val = bw_read(res.a, b0, n);
        // if (n == 7)
-        //    printf("4#%o ", res.val);
+        //    printf("4-#%o ", res.val);
         //else
-            printf("(4R%d)- ", n);
+            printf("(4-R%d)- ", n);
         break;
     case 5:
         res.a = reg[n];
@@ -127,9 +128,9 @@ struct SSDD get_m (word w) {
         res.a = bw_read(res.a, b0, n);
         res.val = bw_read(res.a, b0, n);
         if (n == 7)
-            printf("5@#%o ", res.val);
+            printf("5-@#%o ", res.val);
         else
-            printf("(R%d)- ", n);
+            printf("(5-R%d)- ", n);
         break;
     default:
         printf("This mode hasn't been open yet");
@@ -152,12 +153,15 @@ struct comm command [] = {
     {0005000, 0177700, "clr", do_clr, HAS_DD, 1},
     {0000400, 0177400, "br", do_br, HAS_XX, 1},
     {0001400, 0177400, "beq", do_beq, HAS_XX, 1},
+    {0100000, 0177400, "bpl", do_bpl, HAS_XX, 0},
+    {0105700, 0177700, "tstb", do_tstb, HAS_DD, 0},
     {0, 0, "unknown", do_unknown, NO_PARAM, 1},
 };
 
 void run()
 {
     pc = 001000;
+    w_write(ostat, 0xFF);
     int i;
     while(1)
     {
