@@ -41,9 +41,9 @@ void load_file()
 	FILE * f = NULL;
 	adr a;
 	word n;
-	f = fopen("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\07_putchar\\char.pdp.o", "r");
+	f = fopen("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\09_jsrrts\\hello.pdp.o", "r");
 	if (f == NULL) {
-		perror("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\07_putchar\\char.pdp.o");
+		perror("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\09_jsrrts\\hello.pdp.o");
 		exit(7);
 	}
 
@@ -132,6 +132,12 @@ struct SSDD get_m (word w) {
         else
             printf("(5-R%d)- ", n);
         break;
+    case 6:
+        nn = bw_read(pc, b0, n);
+        pc += b;
+        res.a = reg[n];
+        res.a = bw_read(res.a, b0, n);
+        res.val = bw_read(res.a, b0, n);
     default:
         printf("This mode hasn't been open yet");
     }
@@ -155,6 +161,8 @@ struct comm command [] = {
     {0001400, 0177400, "beq", do_beq, HAS_XX, 1},
     {0100000, 0177400, "bpl", do_bpl, HAS_XX, 0},
     {0105700, 0177700, "tstb", do_tstb, HAS_DD, 0},
+    {0004000, 0177000, "jsr", do_jsr, HAS_DD | HAS_MR, 1},
+    {0000200, 0177770, "rts", do_rts, HAS_LR, 1},
     {0, 0, "unknown", do_unknown, NO_PARAM, 1},
 };
 

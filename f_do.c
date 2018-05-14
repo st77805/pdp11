@@ -13,7 +13,6 @@ void do_movb()
 {
     b_write(dd.a, ss.val);
     NZVC(ss.val);
-    printf("\n");
     if (dd.a == odata)
         printf("%c", ss.val);
 }
@@ -67,6 +66,23 @@ void do_tstb ()
 {
     NZVC(dd.val);
     C = 0;
+}
+
+void do_jsr ()
+{
+    sp -= 2;
+    w_write(sp, reg[mr]);
+    reg[mr] = pc;
+    pc = dd.val;
+    printf("R%d ", mr);
+}
+
+void do_rts ()
+{
+    pc = reg[lr];
+    reg[lr] = w_read(sp);
+    sp += 2;
+    printf("R%d ", lr);
 }
 
 void do_unknown()
