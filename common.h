@@ -39,6 +39,7 @@ struct comm {
 
 extern int dbg_level;
 extern int no_bit;
+extern int ind;
 extern int N, Z, V, C;
 extern int nn, xx, mr, lr;
 extern byte mem[56*1024];

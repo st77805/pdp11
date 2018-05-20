@@ -20,6 +20,7 @@ void trace (int dbg_lvl, const char * format, ...) //принт с аргументом, только 
 
 int N, Z, V, C;
 int nn, xx, mr, lr;
+int ind;
 byte mem[56*1024];
 word reg[8];
 
@@ -41,9 +42,9 @@ void load_file()
 	FILE * f = NULL;
 	adr a;
 	word n;
-	f = fopen("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\09_jsrrts\\hello.pdp.o", "r");
+	f = fopen("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\09_jsrrts\\mode6neg.pdp.o", "r");
 	if (f == NULL) {
-		perror("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\09_jsrrts\\hello.pdp.o");
+		perror("C:\\Users\\Tanya\\pdp11\\gitrepo\\tests\\0");
 		exit(7);
 	}
 
@@ -133,13 +134,28 @@ struct SSDD get_m (word w) {
             printf("(5-R%d)- ", n);
         break;
     case 6:
-        nn = bw_read(pc, b0, n);
-        pc += b;
-        res.a = reg[n];
-        res.a = bw_read(res.a, b0, n);
+        ind = w_read(pc);
+        pc += 2;
+        res.a = (reg[n] + ind) & 0xFFFF;
         res.val = bw_read(res.a, b0, n);
+        if (n == 7)
+            printf("6-%06o ", res.a);
+        else
+            printf("6-%06o(R%d) ", ind, n);
+        break;
+    case 7:
+        ind = w_read(pc);
+        pc += 2;
+        res.a = w_read(reg[n]);
+        res.a = w_read((res.a + ind)&0xFFFF);
+        res.val = bw_read(res.a, b0, n);
+        if (n == 7)
+            printf("7-@%06o ", res.a);
+        else
+            printf("7-%06o(R%d) ", ind, n);
+        break;
     default:
-        printf("This mode hasn't been open yet");
+        printf("This mode hasn't been opened yet");
     }
     return res;
 }
@@ -150,6 +166,7 @@ void NZVC (word w)
     Z = (w == 0);
     C = (no_bit ? (w >> 16) : (w >> 8)) & 1;
 }
+
 struct comm command [] = {
     {0010000, 0170000, "mov", do_mov, HAS_SS | HAS_DD, 1},
     {0060000, 0170000, "add", do_add, HAS_SS | HAS_DD, 1},
@@ -205,6 +222,10 @@ void run()
                 if (cmd.param & HAS_MR)
                 {
                     mr = (w>>6)&7;
+                }
+                if (cmd.param & HAS_LR)
+                {
+                    lr = w&7;
                 }
                 cmd.do_func();
                 break;

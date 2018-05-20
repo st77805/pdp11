@@ -12,6 +12,7 @@ void do_mov()
 void do_movb()
 {
     b_write(dd.a, ss.val);
+    //printf("ss.val=%d, ss.a=%o", ss.val, ss.a);
     NZVC(ss.val);
     if (dd.a == odata)
         printf("%c", ss.val);
@@ -73,7 +74,7 @@ void do_jsr ()
     sp -= 2;
     w_write(sp, reg[mr]);
     reg[mr] = pc;
-    pc = dd.val;
+    pc = dd.a;
     printf("R%d ", mr);
 }
 
